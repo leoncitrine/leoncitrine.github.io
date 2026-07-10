@@ -1,0 +1,325 @@
+
+:root{
+	--main-header: #16163B;
+	--small-header: #222259;
+	--margin: 60px;
+	--smallMarg: 10px;
+	--padSmall: 24px;
+	--padBig: 36px;
+}
+
+/*fonts*/
+h1{
+	font-size: 5rem;
+}
+
+h2{
+	font-size: 2.5rem;
+	margin: 0;
+}
+
+h3{
+	font-size: 1.5rem;
+	margin: 0;
+}
+
+p{
+	font-size: 1rem;
+}
+
+
+/*------------content - mobile and desktop----------------*/
+body {
+	/*display*/
+	
+	
+	/*sizing*/
+	
+	/*content organisation*/
+	
+	/*decoration*/
+	font-family: "Georgia", serif;
+}
+
+header{
+	
+	/*size and position*/
+	
+	
+	/*decoration*/
+	background-color: var(--small-header);
+}
+
+.emailIcon {
+  position: relative;
+  display: inline-block;
+}
+
+#clipMsg {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+#clipMsg.show {
+  opacity: 1;
+  transition: opacity 0.1s ease;
+}
+
+a{
+		display: contents;
+	}
+	
+.links{
+	display: flex;
+	justify-content: center;
+}
+
+.links img{
+	filter: invert(1);
+	margin-left: var(--margin);
+	margin-right: var(--margin);
+}
+
+.title{
+	
+	/*display*/
+	
+	
+	/*size and position*/
+	z-index:1000;
+	padding: var(--padSmall);
+	
+	/*content organisation*/
+	text-align: center;
+	
+	/*decoration*/
+	color: white;
+	background-color: var(--main-header);
+}
+
+.title div{
+	vertical-align: baseline;
+}
+
+.title h1{
+	margin:0;
+}
+
+
+.subheader{
+	/*display*/
+	
+	/*sizing*/
+	
+	
+	/*content organisation*/
+	
+	/*decoration*/
+	color: white;
+	background-color: var(--small-header);
+}
+
+
+.imgGrid{
+	/*display*/
+	display: flex;
+	flex-flow: row nowrap;
+	/*sizing*/
+	
+	/*content organisation*/
+	justify-content: space-evenly;
+	
+	/*colours*/
+}
+
+.imgAnchor img{
+	box-shadow: 5px 5px 10px grey;
+	height: 200px;
+	width: 30%;
+	object-fit: cover;
+	object-position: top;
+}
+
+.gallery{
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-evenly;
+}
+
+
+
+/*mobile*/
+@media (max-width: 800px){
+	body{
+		display: block;
+	}
+	
+	.links{
+		padding: var(--padSmall);
+	}
+	
+	.links img{
+		height: 30px;
+	}
+	
+	.subheader{
+		text-align: center;
+		padding: var(--padSmall);
+	}
+	
+	.subsec{
+		padding: var(--padSmall);
+	}
+	
+	.vidGroup iframe{
+		width: 100%;
+	}
+	
+	
+	.gallery img {
+		height: 200px;
+		margin: var(--smallMarg);
+		box-shadow: 5px 5px 10px grey;
+	}
+}
+
+
+/*desktop*/
+@media (min-width: 801px){
+
+
+	html{
+		font-size: 16px;
+	}
+	
+	body{
+		/*display*/
+		display: grid;
+		grid-template-columns: 1fr minmax(800px, 1200px) 1fr;
+		grid-template-rows: 1fr 200px max-content 1fr;
+		/*sizing*/
+	
+		/*content organisation*/
+	
+		/*colours*/
+		
+	}
+	
+	header{
+		grid-column: 1 / 4;
+		grid-row: 1 / 2;
+		
+	}
+	
+	.links{
+		padding: var(--padSmall);
+	}
+	
+	.links img{
+		height: 30px;
+	}
+	
+	.title{
+			grid-column: 1 / 4;
+			grid-row: 2 / 3;
+	}
+	
+	main{
+		/*display*/
+	
+		/*size and position*/
+		grid-column: 2 / 3;
+		grid-row: 3 / 4;
+	
+		/*content organisation*/
+	
+		/*colours*/
+		
+		
+	}
+	
+	.bigsec{
+		/*display*/
+		display: block;
+		
+		
+		/*size and position*/
+		width: 100%;
+		height: fit-content;
+		margin-top: var(--margin);
+		margin-bottom: var(--margin);
+	
+		/*content organisation*/
+	
+		/*colours*/
+		box-shadow: 12px 0px 20px 10px grey;
+	}
+	
+	.subheader{
+		/*display*/
+	
+		/*size and position*/
+	
+		/*content organisation*/
+		padding: var(--padSmall) var(--padBig);
+		/*colours*/
+	}
+	
+	.subsec{
+		
+		padding: var(--padBig);
+		
+	}
+	
+	.gallery img{
+		height: 400px;
+	}
+	
+	iframe{
+		margin: var(--smallMarg);
+		box-shadow: 5px 5px 10px grey;
+		
+	}
+	
+	.vidGroup{
+		display: flex;
+		flex-flow: row wrap;
+		justify-content: space-evenly;
+	}
+	
+	.video{
+		width: 45%;
+	}
+	
+	
+	.spotifyLinks iframe{
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+
+}
+
+
+
+
+
+
+	/*display*/
+	
+	/*size and position*/
+	
+	/*content organisation*/
+	
+	/*colours*/
