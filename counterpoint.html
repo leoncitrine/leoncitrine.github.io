@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Counterpoint practice</title>
+<style>
+:root{
+  --paper:#eceeea; --surface:#fbfbf9; --ink:#1d2227; --muted:#5f676f; --staff:#868c92;
+  --line:#d2d6d1; --rule:#c23a2c; --caution:#a46d0c; --note:#36689a; --accent:#2b6a64;
+  --band:rgba(43,106,100,.12); --play:rgba(164,109,12,.16);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14171a; --surface:#1c2024; --ink:#e5e7e3; --muted:#9aa2a9; --staff:#737b82;
+    --line:#30363c; --rule:#ff7d6d; --caution:#e3b35a; --note:#8db6df; --accent:#6ec2b8;
+    --band:rgba(110,194,184,.14); --play:rgba(227,179,90,.18);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14171a; --surface:#1c2024; --ink:#e5e7e3; --muted:#9aa2a9; --staff:#737b82;
+  --line:#30363c; --rule:#ff7d6d; --caution:#e3b35a; --note:#8db6df; --accent:#6ec2b8;
+  --band:rgba(110,194,184,.14); --play:rgba(227,179,90,.18);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:820px;margin:0 auto;padding:14px 16px 6px}
+.top h1{font-family:var(--serif);font-weight:600;font-size:1.45rem;letter-spacing:.01em;margin:0}
+.top-actions{display:flex;gap:6px}
+.tbtn{background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px;min-height:38px;cursor:pointer}
+.tbtn.icon{padding:7px 10px;display:inline-flex;align-items:center}
+.tbtn:active{background:var(--band)}
+
+main{max-width:820px;margin:0 auto;padding:0 16px calc(150px + env(safe-area-inset-bottom,0px))}
+.brief{font-family:var(--serif);font-size:1.02rem;line-height:1.5;margin:4px 0 12px;color:var(--ink)}
+.brief .sub{display:block;color:var(--muted);font-size:.9rem}
+
+.score-wrap{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+#score svg{display:block}
+
+.flags{margin-top:16px}
+.flag-head{font-family:var(--serif);font-size:1rem;line-height:1.45;margin-bottom:8px}
+.flag-head .muted{color:var(--muted)}
+.counts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.count{font-family:var(--sans);font-size:.8rem;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.c-rule{color:var(--rule)} .c-caution{color:var(--caution)} .c-note{color:var(--note)}
+#flagList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.flag{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--sev);border-radius:4px;padding:8px 10px;cursor:pointer}
+.flag .meta{display:flex;gap:10px;font-size:.78rem;color:var(--muted);margin-bottom:2px}
+.flag .sev{color:var(--sev);font-weight:600}
+.flag .msg{font-size:.92rem;line-height:1.4}
+.flag.rule{--sev:var(--rule)} .flag.caution{--sev:var(--caution)} .flag.note{--sev:var(--note)}
+
+.controls{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+.controls .inner{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:5px}
+.row button{flex:1 1 0;min-width:0;min-height:44px;border:1px solid var(--line);background:var(--paper);border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 4px}
+.row button:active{background:var(--band)}
+.row .acc{font-family:var(--serif);font-size:1.35rem;line-height:1}
+.row .gap{margin-left:6px}
+.seg{display:flex;flex:2 1 0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--paper);min-height:42px;font-size:.88rem}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--band);color:var(--accent);font-weight:600}
+#btnCheck[aria-pressed="true"]{background:var(--band);color:var(--accent);font-weight:600}
+#btnPlay.on{color:var(--caution)}
+
+dialog{border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:0;width:min(440px,calc(100vw - 24px));max-height:calc(100vh - 48px)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.dlg{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.dlg h2{font-family:var(--serif);font-weight:600;font-size:1.2rem;margin:0}
+.field{display:flex;flex-direction:column;gap:5px;font-size:.92rem}
+.field select,.field input[type=range]{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.check{display:flex;align-items:center;gap:10px;font-size:.92rem;line-height:1.35}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.help{font-size:.82rem;color:var(--muted);line-height:1.4;margin:0}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px}
+.pbtn{border:1px solid var(--accent);background:var(--accent);color:var(--surface);border-radius:6px;padding:9px 16px;min-height:42px;cursor:pointer;font-weight:600}
+.sbtn{border:1px solid var(--line);background:transparent;border-radius:6px;padding:9px 16px;min-height:42px;cursor:pointer}
+.lib{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto}
+.lib h3{font-size:.85rem;color:var(--muted);font-weight:600;margin:6px 0 2px}
+.lib button{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:9px 11px;cursor:pointer}
+.lib button small{display:block;color:var(--muted);margin-top:2px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+	
+		<a href="index.html">
+			<button class="tbtn">
+			<h1> Home </h1>
+			</button>
+		</a>
+      
+	
+	
+  <h1>Counterpoint</h1>
+  <div class="top-actions">
+    <button class="tbtn" id="btnNew">New</button>
+    <button class="tbtn" id="btnLib">Library</button>
+    <button class="tbtn icon" id="btnSet" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <p id="brief" class="brief"></p>
+  <div class="score-wrap" id="scoreWrap"><div id="score"></div></div>
+  <section class="flags" aria-live="polite">
+    <div id="flagHead" class="flag-head"></div>
+    <ol id="flagList"></ol>
+  </section>
+</main>
+
+<nav class="controls" aria-label="Editing and playback">
+  <div class="inner">
+    <div class="row">
+      <button data-act="prev" aria-label="Previous bar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button data-act="down" aria-label="Step down"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button>
+      <button data-act="up" aria-label="Step up"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg></button>
+      <button data-act="next" aria-label="Next bar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <button data-act="flat" class="acc gap" aria-label="Flat">♭</button>
+      <button data-act="natural" class="acc" aria-label="Natural">♮</button>
+      <button data-act="sharp" class="acc" aria-label="Sharp">♯</button>
+      <button data-act="clear" aria-label="Clear note"><svg width="20" height="18" viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M8 5h15v14H8l-6-7z"/><path d="M12 9l6 6M18 9l-6 6"/></svg></button>
+    </div>
+    <div class="row">
+      <button id="btnPlay"><svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg><span id="playLabel">Play</span></button>
+      <div class="seg" role="group" aria-label="Voices to play">
+        <button data-play="both" aria-pressed="true">Both</button>
+        <button data-play="cf" aria-pressed="false">C.f.</button>
+        <button data-play="cp" aria-pressed="false">Yours</button>
+      </div>
+      <button id="btnCheck" aria-pressed="false">Check</button>
+    </div>
+  </div>
+</nav>
+
+<dialog id="dlgNew">
+  <div class="dlg">
+    <h2>New exercise</h2>
+    <label class="field">Key
+      <select id="newKey"></select>
+    </label>
+    <label class="field">Cantus firmus in the
+      <select id="newVoice">
+        <option value="random">Any voice</option>
+        <option value="S">Soprano</option>
+        <option value="A">Alto</option>
+        <option value="T">Tenor</option>
+        <option value="B">Bass</option>
+      </select>
+    </label>
+    <label class="field">Length
+      <select id="newLen">
+        <option value="random">8 to 12 bars</option>
+        <option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+      </select>
+    </label>
+    <p class="help">With the cantus firmus in the alto or tenor, you'll be asked to write above or below it at random.</p>
+    <div class="dlg-actions">
+      <button class="sbtn" data-close>Cancel</button>
+      <button class="pbtn" id="btnCreate">Create exercise</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlgLib">
+  <div class="dlg">
+    <h2>Library</h2>
+    <div class="lib" id="libList"></div>
+    <div class="dlg-actions"><button class="sbtn" data-close>Close</button></div>
+  </div>
+</dialog>
+
+<dialog id="dlgSet">
+  <div class="dlg">
+    <h2>Settings</h2>
+    <label class="field">Clefs
+      <select id="setClefs">
+        <option value="modern">Treble, tenor-treble and bass</option>
+        <option value="c">Soprano, alto, tenor and bass (C clefs)</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="setLive"> Show flags as I write</label>
+    <p class="help">Otherwise flags stay hidden until you tap Check.</p>
+    <label class="check"><input type="checkbox" id="setFig"> Show interval figures between the staves</label>
+    <label class="check"><input type="checkbox" id="setAdv"> Move to the next bar after placing a note</label>
+    <label class="check"><input type="checkbox" id="setSound"> Play each bar as I place it</label>
+    <label class="field">Playback speed
+      <input type="range" id="setSpeed" min="0.4" max="2" step="0.1">
+    </label>
+    <div class="dlg-actions"><button class="pbtn" data-close>Done</button></div>
+  </div>
+</dialog>
+
+<script>
+/* =====================================================================
+   EDIT HERE: LIBRARY
+   ---------------------------------------------------------------------
+   Add cantus firmi from the book (or anywhere) to this list. Nothing is
+   sent anywhere; the list only lives in this file.
+
+   Fields:
+     title   what shows in the Library list
+     source  'book' groups it under "From the book"; anything else under "Other"
+     key     'C major', 'D minor', 'Bb major', 'F# minor' ...
+     voice   'S', 'A', 'T' or 'B': the voice the cantus firmus is in
+     write   optional: 'above', 'below' or 'either' (default: either for
+             alto/tenor; soprano is always written below, bass above)
+     notes   pitches separated by spaces: letter, optional # / b / n, octave
+             (middle C is C4). Example: 'D4 F4 E4 D4 G4 F4 A4 G4 F4 E4 D4'
+             Write accidentals as they should sound, e.g. C#4 for a raised
+             leading tone in D minor.
+   ===================================================================== */
+const LIBRARY = [
+  // { title:'Example 12', source:'book', key:'C major', voice:'A', notes:'C4 D4 F4 E4 D4 C4' },
+
+  { title:'Fux, D cantus (1725)', source:'sample', key:'D minor', voice:'A',
+    notes:'D4 F4 E4 D4 G4 F4 A4 G4 F4 E4 D4' },
+  { title:'Sample in C major', source:'sample', key:'C major', voice:'T',
+    notes:'C3 D3 F3 E3 A3 G3 F3 E3 D3 C3' },
+  { title:'Sample in G major', source:'sample', key:'G major', voice:'S',
+    notes:'G4 B4 A4 D5 C5 B4 E5 D5 C5 B4 A4 G4' },
+  { title:'Sample in E minor', source:'sample', key:'E minor', voice:'B',
+    notes:'E3 G3 F#3 E3 C3 A2 B2 C3 B2 D#3 E3' },
+];
+
+/* =====================================================================
+   EDIT HERE: RULES
+   ---------------------------------------------------------------------
+   severity: 'rule'    shown as "Rule broken"
+             'caution' shown as "Stretched"
+             'note'    shown as "Worth a look"
+             'off'     not checked at all
+   Every flag is advisory: nothing ever stops you placing a note.
+   ===================================================================== */
+const RULES = {
+  dissonance:       { severity:'rule' },
+  crossing:         { severity:'rule' },
+  start:            { severity:'rule' },
+  end:              { severity:'rule' },
+  parallels:        { severity:'rule' },
+  melodicDissonant: { severity:'rule',    target:'cp' },
+  cadence:          { severity:'caution' },
+  contraryPerfects: { severity:'caution' },
+  hidden:           { severity:'caution' },
+  hiddenStep:       { severity:'note' },
+  unison:           { severity:'caution' },
+  spacing:          { severity:'caution', max:11 },   // 11 = wider than a twelfth
+  overlap:          { severity:'caution' },
+  falseRelation:    { severity:'caution' },
+  repeat:           { severity:'caution', target:'cp' },
+  chromatic:        { severity:'caution', target:'cp' },
+  sixth:            { severity:'caution', target:'cp' },
+  minorSixthUp:     { severity:'note',    target:'cp' },
+  recovery:         { severity:'caution', target:'cp' },
+  doubleLeap:       { severity:'caution', target:'cp' },
+  doubleLeapTriad:  { severity:'note',    target:'cp' },
+  leadingTone:      { severity:'caution', target:'cp' },
+  subtonic:         { severity:'caution', target:'cp' },
+  range:            { severity:'caution', target:'cp' },
+  span:             { severity:'caution', target:'cp', max:9 }, // 9 = wider than a tenth
+  imperfectRun:     { severity:'note',    max:3 },              // more than 3 parallel 3rds/6ths
+  contrary:         { severity:'note' },
+  climax:           { severity:'note',    target:'cp' },
+};
+
+/* ==CORE START== (music logic; no DOM below until CORE END) */
+const LETTERS='CDEFGAB';
+const SEMI=[0,2,4,5,7,9,11];
+const ACC={'-2':'♭♭','-1':'♭','0':'','1':'♯','2':'♯♯'};
+
+function parseNote(str){
+  const m=/^([A-Ga-g])(bb|b|##|#|n)?(-?\d)$/.exec(String(str).trim());
+  if(!m) return null;
+  const L=LETTERS.indexOf(m[1].toUpperCase());
+  const a={bb:-2,b:-1,'':0,n:0,'#':1,'##':2}[m[2]||''];
+  return {d:Number(m[3])*7+L, a};
+}
+const mod=(x,n)=>((x%n)+n)%n;
+const letterOf=n=>mod(n.d,7);
+const octOf=n=>Math.floor(n.d/7);
+const midiOf=n=>12*(octOf(n)+1)+SEMI[letterOf(n)]+n.a;
+const pcOf=n=>mod(midiOf(n),12);
+const cmp=(x,y)=>(midiOf(x)-midiOf(y))||(x.d-y.d);
+const noteName=(n,oct=true)=>LETTERS[letterOf(n)]+ACC[n.a]+(oct?octOf(n):'');
+
+function ivl(x,y){
+  const dir=Math.sign((y.d-x.d)||(midiOf(y)-midiOf(x)));
+  const lo=dir<0?y:x, hi=dir<0?x:y;
+  const g=hi.d-lo.d, s=midiOf(hi)-midiOf(lo), gs=g%7;
+  const diff=s-(SEMI[gs]+12*Math.floor(g/7));
+  let q;
+  if([0,3,4].includes(gs)) q=diff===0?'P':diff>0?'A'.repeat(diff):'d'.repeat(-diff);
+  else q=diff===0?'M':diff===-1?'m':diff>0?'A'.repeat(diff):'d'.repeat(-diff-1);
+  return {g,gs,s,q,dir,num:g+1};
+}
+const isPerfect=v=>v.q==='P'&&(v.gs===0||v.gs===4);
+const isConsonant=v=>isPerfect(v)||((v.q==='M'||v.q==='m')&&(v.gs===2||v.gs===5));
+const QUAL={P:'perfect',M:'major',m:'minor',A:'augmented',d:'diminished',AA:'doubly augmented',dd:'doubly diminished'};
+const NUMW=['unison','second','third','fourth','fifth','sixth','seventh','octave','ninth','tenth','eleventh','twelfth','thirteenth','fourteenth','double octave'];
+const numWord=k=>NUMW[k-1]||(k+'th');
+function ivlName(v){ if(v.q==='P'&&v.g===0) return 'unison'; return QUAL[v.q]+' '+numWord(v.num); }
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+const MAJOR_SIG={C:0,G:1,D:2,A:3,E:4,B:5,'F#':6,'C#':7,F:-1,Bb:-2,Eb:-3,Ab:-4,Db:-5,Gb:-6,Cb:-7};
+const MINOR_SIG={A:0,E:1,B:2,'F#':3,'C#':4,'G#':5,'D#':6,'A#':7,D:-1,G:-2,C:-3,F:-4,Bb:-5,Eb:-6,Ab:-7};
+function makeKey(name){
+  const m=/^\s*([A-Ga-g])(#|b)?\s+(major|minor)\s*$/i.exec(name||'');
+  if(!m) return null;
+  const t=m[1].toUpperCase()+(m[2]||''), mode=m[3].toLowerCase();
+  const sig=(mode==='major'?MAJOR_SIG:MINOR_SIG)[t];
+  if(sig===undefined) return null;
+  return {name:m[1].toUpperCase()+(m[2]==='#'?'♯':m[2]==='b'?'♭':'')+' '+mode,
+          tonicL:LETTERS.indexOf(m[1].toUpperCase()), tonicA:m[2]==='#'?1:m[2]==='b'?-1:0, mode, sig};
+}
+function keyAcc(key,L){
+  const ch=LETTERS[L];
+  if(key.sig>0&&'FCGDAEB'.slice(0,key.sig).includes(ch)) return 1;
+  if(key.sig<0&&'BEADGCF'.slice(0,-key.sig).includes(ch)) return -1;
+  return 0;
+}
+const tonicPc=key=>mod(SEMI[key.tonicL]+key.tonicA,12);
+const degreeOf=(key,n)=>mod(letterOf(n)-key.tonicL,7);
+const isTonic=(key,n)=>degreeOf(key,n)===0&&pcOf(n)===tonicPc(key);
+const isLeadingTone=(key,n)=>degreeOf(key,n)===6&&pcOf(n)===mod(tonicPc(key)-1,12);
+const isSubtonic=(key,n)=>degreeOf(key,n)===6&&pcOf(n)===mod(tonicPc(key)-2,12);
+function scaleNote(key,tonicOct,k){
+  const d=tonicOct*7+key.tonicL+k, L=mod(d,7);
+  let a=keyAcc(key,L);
+  if(key.mode==='minor'&&mod(k,7)===6) a+=1; // raised leading tone
+  return {d,a};
+}
+
+const VOICES={
+  S:{name:'Soprano',lo:'C4',hi:'G5',clef:{modern:'treble',c:'soprano'}},
+  A:{name:'Alto',   lo:'F3',hi:'D5',clef:{modern:'treble',c:'alto'}},
+  T:{name:'Tenor',  lo:'C3',hi:'G4',clef:{modern:'treble8',c:'tenor'}},
+  B:{name:'Bass',   lo:'E2',hi:'D4',clef:{modern:'bass',c:'bass'}},
+};
+const VORDER='SATB';
+
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+function weighted(pairs){
+  let r=Math.random()*pairs.reduce((s,p)=>s+p[1],0);
+  for(const [v,w] of pairs){ if((r-=w)<0) return v; }
+  return pairs[pairs.length-1][0];
+}
+function melodicOK(v){
+  const nm=v.q+v.num;
+  if(nm==='m6') return v.dir>0;
+  return ['m2','M2','m3','M3','P4','P5','P8'].includes(nm);
+}
+
+/* Generates scale degrees (0 = tonic) for a cantus firmus. */
+function generateCantus(key,len){
+  const minor=key.mode==='minor';
+  for(let attempt=0;attempt<6000;attempt++){
+    const deg=[0];
+    const penult=Math.random()<0.72?1:-1;
+    for(let i=1;i<len-2;i++){
+      const prev=deg[i-1], pm=i>=2?deg[i-1]-deg[i-2]:0, r=mod(prev,7);
+      let opts=[[1,6],[-1,6],[2,2.2],[-2,2.2],[3,1.1],[-3,1.1],[4,.5],[-4,.5],[5,.2],[7,.12],[-7,.12]];
+      if(Math.abs(pm)>=3) opts=[[-Math.sign(pm),1]];
+      else if(Math.abs(pm)===2) opts=opts.filter(([m])=>!(Math.abs(m)>=2&&Math.sign(m)===Math.sign(pm)));
+      if(r===6) opts=[[1,1]];
+      if(minor&&r===5) opts=[[-1,1]];
+      if(minor) opts=opts.filter(([m])=>mod(prev+m,7)!==6);
+      if(!opts.length) break;
+      deg.push(prev+weighted(opts));
+    }
+    if(deg.length!==len-2) continue;
+    deg.push(penult,0);
+    if(validCantus(key,deg)) return deg;
+  }
+  return len>=10?[0,2,1,3,2,4,3,2,1,0].slice(0,len):[0,1,3,2,1,2,1,0];
+}
+function validCantus(key,deg){
+  const n=deg.length, minor=key.mode==='minor';
+  for(let i=1;i<n;i++) if(deg[i]===deg[i-1]) return false;
+  const mx=Math.max(...deg), mn=Math.min(...deg);
+  if(mx-mn<4||mx-mn>8) return false;
+  if(deg.filter(x=>x===mx).length!==1) return false;
+  const top=deg.indexOf(mx); if(top===0||top>=n-2) return false;
+  let leaps=0;
+  for(let i=1;i<n;i++) if(Math.abs(deg[i]-deg[i-1])>=2) leaps++;
+  if(leaps<1||leaps>Math.floor(n/3)+1) return false;
+  for(let i=2;i<n;i++){
+    const pm=deg[i-1]-deg[i-2], m=deg[i]-deg[i-1];
+    if(Math.abs(pm)>=3&&m!==-Math.sign(pm)) return false;
+    if(Math.abs(pm)>=2&&Math.abs(m)>=2&&Math.sign(pm)===Math.sign(m)) return false;
+  }
+  for(let i=0;i<n;i++){
+    const r=mod(deg[i],7);
+    if(r===6&&i<n-1&&deg[i+1]!==deg[i]+1) return false;
+    if(minor&&r===6&&i!==n-2) return false;
+    if(minor&&r===5&&i<n-1&&deg[i+1]!==deg[i]-1) return false;
+  }
+  if(deg.filter(x=>mod(x,7)===0).length>3) return false;
+  const notes=deg.map(k=>scaleNote(key,4,k));
+  for(let i=1;i<n;i++) if(!melodicOK(ivl(notes[i-1],notes[i]))) return false;
+  return true;
+}
+function placeInVoice(key,deg,vk){
+  const V=VOICES[vk], lo=midiOf(parseNote(V.lo)), hi=midiOf(parseNote(V.hi)), centre=(lo+hi)/2;
+  let best=null, bestScore=Infinity;
+  for(let oct=1;oct<=6;oct++){
+    const notes=deg.map(k=>scaleNote(key,oct,k)), ms=notes.map(midiOf);
+    const over=Math.max(0,lo-Math.min(...ms))+Math.max(0,Math.max(...ms)-hi);
+    const avg=ms.reduce((a,b)=>a+b,0)/ms.length;
+    const score=over*100+Math.abs(avg-centre);
+    if(score<bestScore){bestScore=score;best=notes;}
+  }
+  return best;
+}
+function chooseSides(cfVoice,write){
+  let above;
+  if(cfVoice==='S') above=false;
+  else if(cfVoice==='B') above=true;
+  else above=write==='above'?true:write==='below'?false:Math.random()<0.5;
+  const idx=VORDER.indexOf(cfVoice);
+  const cands=above?VORDER.slice(0,idx).split('').reverse():VORDER.slice(idx+1).split('');
+  const cpVoice=cands.length>1&&Math.random()<0.3?cands[1]:cands[0];
+  return {cpVoice,cpAbove:above};
+}
+
+function check(ex){
+  const F=[], {cf,cp,key,cpAbove}=ex, n=cf.length;
+  const add=(rule,bars,msg)=>{
+    const r=RULES[rule]; if(!r||r.severity==='off') return;
+    F.push({rule,bars,sev:r.severity,msg,target:r.target||'pair'});
+  };
+  const up=i=>cpAbove?cp[i]:cf[i], lo=i=>cpAbove?cf[i]:cp[i], has=i=>!!cp[i];
+  const vert=i=>ivl(lo(i),up(i));
+  const crossed=i=>{const c=cmp(cp[i],cf[i]);return cpAbove?c<0:c>0;};
+
+  for(let i=0;i<n;i++){
+    if(!has(i)) continue;
+    if(crossed(i)) add('crossing',[i],`The voices cross: your line is ${cpAbove?'below':'above'} the cantus firmus here.`);
+    const v=vert(i);
+    if(!isConsonant(v)) add('dissonance',[i],`${cap(ivlName(v))} is a dissonance. First species uses consonances only.`);
+    else if(v.g===0&&i>0&&i<n-1) add('unison',[i],'Unison in the middle of the exercise. The two voices collapse into one.');
+    if(v.g>RULES.spacing.max) add('spacing',[i],`The voices are a ${ivlName(v)} apart, wider than a ${numWord(RULES.spacing.max+1)}.`);
+  }
+  if(has(0)){
+    const v=vert(0);
+    if(cpAbove&&!isPerfect(v)) add('start',[0],`Begin on a perfect consonance (unison, fifth or octave), not a ${ivlName(v)}.`);
+    if(!cpAbove&&!(isPerfect(v)&&v.gs===0)) add('start',[0], isPerfect(v)
+      ? 'A fifth below the cantus firmus puts the lower voice on the fourth degree. Begin on the unison or octave.'
+      : `Begin on the unison or octave below the cantus firmus, not a ${ivlName(v)}.`);
+  }
+  if(has(n-1)){
+    const v=vert(n-1);
+    if(!(isPerfect(v)&&v.gs===0)) add('end',[n-1],`End on the unison or octave, not a ${ivlName(v)}.`);
+  }
+  if(has(n-2)&&has(n-1)){
+    if(ivl(cp[n-2],cp[n-1]).g!==1) add('cadence',[n-2,n-1],'Approach the final note by step in both voices.');
+    if(!isLeadingTone(key,cp[n-2])&&!isLeadingTone(key,cf[n-2]))
+      add('cadence',[n-2], key.mode==='minor'
+        ? 'The cadence has no leading tone. In minor, raise the seventh degree.'
+        : 'The cadence has no leading tone rising to the tonic.');
+  }
+
+  const runs=[]; let run=null, contrary=0, moves=0;
+  for(let i=1;i<n;i++){
+    if(!has(i)||!has(i-1)){run=null;continue;}
+    const a=vert(i-1), b=vert(i);
+    const dU=Math.sign(cmp(up(i),up(i-1))), dL=Math.sign(cmp(lo(i),lo(i-1)));
+    if(dU||dL){moves++; if(dU&&dL&&dU!==dL) contrary++;}
+    const similar=dU!==0&&dU===dL;
+    if(isPerfect(b)){
+      if(isPerfect(a)&&a.gs===b.gs&&dU!==0&&dL!==0){
+        const cls=b.gs===4?'fifths':(a.g===0&&b.g===0?'unisons':'octaves');
+        if(similar) add('parallels',[i-1,i],`Parallel ${cls}.`);
+        else add('contraryPerfects',[i-1,i],`Consecutive ${cls} by contrary motion. Still heard as consecutive perfect intervals.`);
+      } else if(similar){
+        const um=ivl(up(i-1),up(i)), nm=b.gs===4?'fifth':'octave';
+        if(um.g>1) add('hidden',[i-1,i],`Hidden ${nm}: similar motion into a perfect interval, with a leap in the upper voice.`);
+        else add('hiddenStep',[i-1,i],`Similar motion into a ${nm}. Usually accepted when the upper voice moves by step.`);
+      }
+    }
+    if(!crossed(i)&&!crossed(i-1)&&a.g!==0&&b.g!==0){
+      const ov=cpAbove?(cmp(cp[i],cf[i-1])<0||cmp(cf[i],cp[i-1])>0):(cmp(cp[i],cf[i-1])>0||cmp(cf[i],cp[i-1])<0);
+      if(ov) add('overlap',[i-1,i],'The voices overlap: one moves past the note the other has just left.');
+    }
+    for(const [p,q] of [[cp[i-1],cf[i]],[cf[i-1],cp[i]]]){
+      if(letterOf(p)===letterOf(q)&&pcOf(p)!==pcOf(q)){
+        add('falseRelation',[i-1,i],`False relation: ${noteName(p,false)} against ${noteName(q,false)} in the other voice.`); break;
+      }
+    }
+    if(similar&&isConsonant(a)&&isConsonant(b)&&!isPerfect(a)&&!isPerfect(b)&&a.gs===b.gs){
+      if(run&&run.end===i-1){run.end=i;run.len++;} else {run={start:i-1,end:i,len:2,gs:b.gs};runs.push(run);}
+    } else run=null;
+  }
+  for(const r of runs) if(r.len>RULES.imperfectRun.max){
+    const bars=[]; for(let i=r.start;i<=r.end;i++) bars.push(i);
+    add('imperfectRun',bars,`${r.len} ${r.gs===2?'thirds':'sixths'} in a row in parallel motion. The voices lose independence.`);
+  }
+
+  for(let i=1;i<n;i++){
+    if(!has(i)||!has(i-1)) continue;
+    const m=ivl(cp[i-1],cp[i]);
+    if(m.g===0){
+      if(m.s===0) add('repeat',[i-1,i],'Repeated note. It stalls the line.');
+      else add('chromatic',[i-1,i],`Chromatic step from ${noteName(cp[i-1],false)} to ${noteName(cp[i],false)}. Awkward to sing and blurs the key.`);
+      continue;
+    }
+    if(m.g>7) add('melodicDissonant',[i-1,i],`A leap of a ${ivlName(m)}, larger than an octave.`);
+    else if(!['P','M','m'].includes(m.q)) add('melodicDissonant',[i-1,i],`${cap(ivlName(m))} in the melody. Augmented and diminished intervals are avoided.`);
+    else if(m.num===7) add('melodicDissonant',[i-1,i],`A leap of a ${ivlName(m)}. Sevenths are avoided in the melody.`);
+    else if(m.num===6){
+      if(m.q==='m'&&m.dir>0) add('minorSixthUp',[i-1,i],'Rising minor sixth. Allowed, but use it sparingly.');
+      else add('sixth',[i-1,i],`A leap of a ${ivlName(m)} ${m.dir>0?'up':'down'}. Only the rising minor sixth is usually allowed.`);
+    }
+  }
+  for(let i=1;i<n-1;i++){
+    if(!has(i-1)||!has(i)||!has(i+1)) continue;
+    const m1=ivl(cp[i-1],cp[i]), m2=ivl(cp[i],cp[i+1]);
+    if(m1.g>=2&&m2.g>=2&&m1.dir===m2.dir){
+      const outer=ivl(cp[i-1],cp[i+1]);
+      const triad=isConsonant(outer)&&outer.num<=8&&m1.num<=5&&m2.num<=5;
+      if(triad) add('doubleLeapTriad',[i-1,i,i+1],'Two leaps in the same direction. They outline a triad, which is the acceptable case.');
+      else add('doubleLeap',[i-1,i,i+1],'Two leaps in the same direction. Change direction after a leap.');
+      continue;
+    }
+    if(m1.g>=3&&!(m2.g===1&&m2.dir===-m1.dir))
+      add('recovery',[i,i+1],`After a leap of a ${ivlName(m1)}, move by step in the opposite direction.`);
+  }
+  for(let i=0;i<n-1;i++){
+    if(!has(i)||!has(i+1)) continue;
+    const rises=isTonic(key,cp[i+1])&&ivl(cp[i],cp[i+1]).g===1&&cmp(cp[i+1],cp[i])>0;
+    if(isLeadingTone(key,cp[i])&&!rises) add('leadingTone',[i,i+1],'The leading tone usually rises to the tonic.');
+    if(key.mode==='minor'&&isSubtonic(key,cp[i])&&rises) add('subtonic',[i,i+1],'In minor, raise the seventh degree when it rises to the tonic.');
+  }
+  const V=VOICES[ex.cpVoice], vlo=parseNote(V.lo), vhi=parseNote(V.hi);
+  const out=[]; for(let i=0;i<n;i++) if(has(i)&&(cmp(cp[i],vlo)<0||cmp(cp[i],vhi)>0)) out.push(i);
+  if(out.length) add('range',out,`Outside the usual ${V.name.toLowerCase()} range (${noteName(vlo)} to ${noteName(vhi)}).`);
+  const filled=cp.filter(Boolean);
+  if(filled.length>=2){
+    const mx=filled.reduce((a,b)=>cmp(a,b)>=0?a:b), mn=filled.reduce((a,b)=>cmp(a,b)<=0?a:b);
+    const sp=ivl(mn,mx);
+    if(sp.g>RULES.span.max) add('span',[],`Your line spans a ${ivlName(sp)}. Keep it within a ${numWord(RULES.span.max+1)}.`);
+    if(filled.length===n){
+      const idx=[]; cp.forEach((x,i)=>{if(cmp(x,mx)===0) idx.push(i);});
+      if(idx.length>1) add('climax',idx,`The high point (${noteName(mx)}) comes ${idx.length} times. A single climax gives the line its shape.`);
+      if(moves>=5&&contrary/moves<0.3) add('contrary',[],`Only ${contrary} of ${moves} moves are in contrary motion. More contrary motion keeps the voices independent.`);
+    }
+  }
+  const first=f=>f.bars.length?Math.min(...f.bars):-1;
+  return F.sort((a,b)=>first(a)-first(b));
+}
+/* ==CORE END== */
+
+/* ---------- state ---------- */
+const S={
+  settings:{clefs:'modern',live:false,figures:true,advance:false,sound:true,barSec:0.9,play:'both'},
+  ex:null, sel:0, shown:false, flags:[], playIdx:-1, layout:null,
+};
+const KEY_NAMES=['C major','G major','D major','A major','F major','Bb major','Eb major',
+                 'A minor','E minor','B minor','D minor','G minor','C minor'];
+const SEV_LABEL={rule:'Rule broken',caution:'Stretched',note:'Worth a look'};
+const SEV_RANK={rule:3,caution:2,note:1};
+
+function newExercise(opt={}){
+  const key=makeKey(!opt.key||opt.key==='random'?pick(KEY_NAMES):opt.key);
+  const cfVoice=!opt.voice||opt.voice==='random'?pick([...VORDER]):opt.voice;
+  const len=!opt.len||opt.len==='random'?8+rnd(5):Number(opt.len);
+  const deg=generateCantus(key,len);
+  const cf=placeInVoice(key,deg,cfVoice);
+  startExercise({key,cfVoice,cf,title:null,...chooseSides(cfVoice,'either')});
+}
+function loadEntry(e){
+  const key=makeKey(e.key), cf=String(e.notes||'').trim().split(/\s+/).map(parseNote);
+  if(!key||!cf.length||cf.some(x=>!x)||!VOICES[e.voice]) return false;
+  startExercise({key,cfVoice:e.voice,cf,title:e.title,...chooseSides(e.voice,e.write||'either')});
+  return true;
+}
+function startExercise(o){
+  stopPlayback();
+  S.ex={...o,cp:Array(o.cf.length).fill(null),species:1};
+  S.sel=0; S.shown=false;
+  renderBrief(); render(); document.getElementById('scoreWrap').scrollLeft=0;
+}
+
+/* ---------- drawing ---------- */
+const CLEF_BOTTOM={treble:30,treble8:23,bass:18,alto:24,tenor:22,soprano:28};
+const SHARP_POS=[38,35,39,36,33,37,34], FLAT_POS=[34,37,33,36,32,35,31];
+const SP=10, SCALE=1.15;
+
+function sigPositions(clef,sig){
+  const b=CLEF_BOTTOM[clef], top=b+8, shift=Math.round((b-30)/7)*7;
+  const base=sig>0?SHARP_POS:FLAT_POS, lim=(sig>0&&clef==='tenor')?0:1;
+  return base.slice(0,Math.abs(sig)).map(p=>{let d=p+shift; if(d>top+lim) d-=7; if(d<b-1) d+=7; return d;});
+}
+function clefSVG(clef,x,top){
+  const ink='var(--ink)';
+  if(clef==='treble'||clef==='treble8'){
+    const p=(dx,dy)=>`${x+dx} ${top+dy}`;
+    let s=`<path d="M ${p(4,31)} C ${p(0,31)} ${p(-1,25)} ${p(4,24)} C ${p(10,23)} ${p(13,29)} ${p(11,34)} C ${p(9,39)} ${p(0,40)} ${p(-4,36)} C ${p(-9,31)} ${p(-6,22)} ${p(0,16)} C ${p(6,10)} ${p(11,4)} ${p(10,-4)} C ${p(9,-10)} ${p(4,-10)} ${p(3,-4)} L ${p(7,48)} C ${p(8,54)} ${p(2,56)} ${p(-1,53)}" fill="none" stroke="${ink}" stroke-width="1.7" stroke-linecap="round"/>`;
+    s+=`<circle cx="${x-0.5}" cy="${top+51.5}" r="2.3" fill="${ink}"/>`;
+    if(clef==='treble8') s+=`<text x="${x+3}" y="${top+66}" font-size="9" text-anchor="middle" fill="${ink}" font-family="var(--serif)">8</text>`;
+    return s;
+  }
+  if(clef==='bass'){
+    return `<circle cx="${x+1}" cy="${top+11}" r="2.8" fill="${ink}"/>`+
+      `<path d="M ${x-1} ${top+11} C ${x-2} ${top+2} ${x+12} ${top-1} ${x+14} ${top+9} C ${x+16} ${top+20} ${x+6} ${top+31} ${x-3} ${top+36}" fill="none" stroke="${ink}" stroke-width="2.2" stroke-linecap="round"/>`+
+      `<circle cx="${x+19}" cy="${top+5}" r="1.7" fill="${ink}"/><circle cx="${x+19}" cy="${top+15}" r="1.7" fill="${ink}"/>`;
+  }
+  const cy=top+({soprano:40,alto:20,tenor:10}[clef]);
+  const arm=sgn=>`<path d="M ${x+6} ${cy-sgn*0.5} L ${x+10} ${cy-sgn*6} C ${x+11.5} ${cy-sgn*8.5} ${x+13} ${cy-sgn*7} ${x+15} ${cy-sgn*6.5} C ${x+21} ${cy-sgn*6} ${x+22.5} ${cy-sgn*12} ${x+21.5} ${cy-sgn*15.5} C ${x+20.5} ${cy-sgn*20} ${x+14.5} ${cy-sgn*21} ${x+13.5} ${cy-sgn*16.5}" fill="none" stroke="${ink}" stroke-width="1.9" stroke-linecap="round"/><circle cx="${x+15}" cy="${cy-sgn*16}" r="2.3" fill="${ink}"/>`;
+  return `<rect x="${x-3}" y="${cy-20}" width="3.4" height="40" fill="${ink}"/><rect x="${x+2.5}" y="${cy-20}" width="1.2" height="40" fill="${ink}"/>`+arm(1)+arm(-1);
+}
+function accGlyph(a,x,y,color){
+  if(!ACC[a]&&a!==0) return '';
+  const g=a===0?'♮':ACC[a];
+  return `<text x="${x}" y="${y+(a<0?2:1)}" font-size="${a===0?15:17}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-family="var(--serif)">${g}</text>`;
+}
+
+function render(){
+  const ex=S.ex; if(!ex) return;
+  const n=ex.cf.length;
+  const flags=check(ex); S.flags=flags;
+  const show=S.shown||S.settings.live;
+  const cpIdx=ex.cpAbove?0:1;
+  const staves=[
+    {vk:ex.cpAbove?ex.cpVoice:ex.cfVoice, notes:ex.cpAbove?ex.cp:ex.cf, isCp:ex.cpAbove},
+    {vk:ex.cpAbove?ex.cfVoice:ex.cpVoice, notes:ex.cpAbove?ex.cf:ex.cp, isCp:!ex.cpAbove},
+  ];
+  const sigN=Math.abs(ex.key.sig);
+  const X0=10, clefX=X0+16, sigX=X0+47, barsX=sigX+sigN*9+10, BW=46, W=barsX+n*BW+14;
+  const TOPS=[56,186], H=282, figY=(TOPS[0]+40+TOPS[1])/2+5;
+  const yOf=(d,k,b)=>TOPS[k]+40-(d-b)*5;
+  const colX=i=>barsX+i*BW+BW/2;
+  S.layout={barsX,BW,TOPS,cpIdx,n,W,H,bottoms:staves.map(s=>CLEF_BOTTOM[VOICES[s.vk].clef[S.settings.clefs]])};
+
+  const worst={pair:{},cp:{}};
+  if(show) for(const f of flags) for(const b of f.bars){
+    const t=worst[f.target]; if(!t[b]||SEV_RANK[f.sev]>SEV_RANK[t[b]]) t[b]=f.sev;
+  }
+  const sevColor={rule:'var(--rule)',caution:'var(--caution)',note:'var(--note)'};
+
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${Math.round(W*SCALE)}" height="${Math.round(H*SCALE)}" role="img" aria-label="Exercise score" style="background:var(--surface)">`;
+  if(S.playIdx>=0) s+=`<rect x="${barsX+S.playIdx*BW+2}" y="${TOPS[0]-38}" width="${BW-4}" height="${TOPS[1]-TOPS[0]+116}" rx="4" fill="var(--play)"/>`;
+  s+=`<rect x="${barsX+S.sel*BW+2}" y="${TOPS[cpIdx]-38}" width="${BW-4}" height="116" rx="4" fill="var(--band)"/>`;
+
+  staves.forEach((st,k)=>{
+    const V=VOICES[st.vk], clef=V.clef[S.settings.clefs], b=CLEF_BOTTOM[clef], top=TOPS[k];
+    for(let l=0;l<5;l++) s+=`<line x1="${X0}" x2="${W-10}" y1="${top+l*SP}" y2="${top+l*SP}" stroke="var(--staff)" stroke-width="1"/>`;
+    for(let i=1;i<n;i++) s+=`<line x1="${barsX+i*BW}" x2="${barsX+i*BW}" y1="${top}" y2="${top+40}" stroke="var(--staff)" stroke-width="1"/>`;
+    s+=`<line x1="${W-15}" x2="${W-15}" y1="${top}" y2="${top+40}" stroke="var(--staff)" stroke-width="1"/><rect x="${W-12.5}" y="${top}" width="3" height="40" fill="var(--ink)"/>`;
+    s+=clefSVG(clef,clefX,top);
+    sigPositions(clef,ex.key.sig).forEach((d,j)=>{ s+=accGlyph(ex.key.sig>0?1:-1,sigX+j*9,yOf(d,k,b),'var(--ink)'); });
+    s+=`<text x="${X0}" y="${top-24}" font-size="10" fill="var(--muted)" font-family="var(--sans)">${V.name}${st.isCp?'':' (c.f.)'}</text>`;
+    st.notes.forEach((nt,i)=>{
+      if(!nt) return;
+      const x=colX(i), y=yOf(nt.d,k,b);
+      const color=(st.isCp&&show&&worst.cp[i])?sevColor[worst.cp[i]]:'var(--ink)';
+      for(let dd=b-2;dd>=nt.d;dd-=2) s+=`<line x1="${x-10}" x2="${x+10}" y1="${yOf(dd,k,b)}" y2="${yOf(dd,k,b)}" stroke="var(--staff)" stroke-width="1"/>`;
+      for(let dd=b+10;dd<=nt.d;dd+=2) s+=`<line x1="${x-10}" x2="${x+10}" y1="${yOf(dd,k,b)}" y2="${yOf(dd,k,b)}" stroke="var(--staff)" stroke-width="1"/>`;
+      if(nt.a!==keyAcc(ex.key,letterOf(nt))) s+=accGlyph(nt.a,x-15,y,color);
+      s+=`<ellipse cx="${x}" cy="${y}" rx="6.6" ry="4.7" fill="${color}"/><ellipse cx="${x}" cy="${y}" rx="3.5" ry="2.2" transform="rotate(-38 ${x} ${y})" fill="var(--surface)"/>`;
+      if(st.isCp&&show&&worst.cp[i]) s+=`<ellipse cx="${x-2}" cy="${y}" rx="${nt.a!==keyAcc(ex.key,letterOf(nt))?19:12}" ry="10" transform="rotate(-8 ${x} ${y})" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+    });
+    if(st.isCp){
+      const nt=st.notes[S.sel];
+      if(!nt) s+=`<circle cx="${colX(S.sel)}" cy="${top+20}" r="2.5" fill="var(--accent)"/>`;
+    }
+  });
+  s+=`<line x1="${X0}" x2="${X0}" y1="${TOPS[0]}" y2="${TOPS[1]+40}" stroke="var(--staff)" stroke-width="1"/>`;
+
+  for(let i=0;i<n;i++){
+    const x=colX(i);
+    if(S.settings.figures&&ex.cp[i]){
+      const v=ivl(ex.cf[i],ex.cp[i]);
+      const col=(show&&!isConsonant(v))?'var(--rule)':'var(--muted)';
+      s+=`<text x="${x}" y="${figY}" font-size="14" text-anchor="middle" fill="${col}" font-family="var(--serif)" font-style="italic">${v.num}</text>`;
+    }
+    if(show&&worst.pair[i]) s+=`<ellipse cx="${x}" cy="${figY-5}" rx="13" ry="11" transform="rotate(-10 ${x} ${figY-5})" fill="none" stroke="${sevColor[worst.pair[i]]}" stroke-width="1.6"/>`;
+    s+=`<text x="${x}" y="${H-8}" font-size="9" text-anchor="middle" fill="var(--muted)" font-family="var(--sans)">${i+1}</text>`;
+  }
+  s+='</svg>';
+  document.getElementById('score').innerHTML=s;
+  renderFlags(flags,show);
+}
+
+function renderBrief(){
+  const ex=S.ex, cpV=VOICES[ex.cpVoice].name.toLowerCase(), cfV=VOICES[ex.cfVoice].name.toLowerCase();
+  const el=document.getElementById('brief');
+  el.innerHTML=`${ex.key.name.charAt(0).toUpperCase()+ex.key.name.slice(1)}. Cantus firmus in the ${cfV}; write ${ex.cpAbove?'above':'below'} it in the ${cpV}.`+
+    `<span class="sub">First species, ${ex.cf.length} bars${ex.title?`. ${escapeHTML(ex.title)}`:''}</span>`;
+}
+function escapeHTML(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function renderFlags(flags,show){
+  const head=document.getElementById('flagHead'), list=document.getElementById('flagList');
+  const ex=S.ex, empty=ex.cp.filter(x=>!x).length, cpName=VOICES[ex.cpVoice].name.toLowerCase();
+  list.innerHTML='';
+  if(empty===ex.cp.length){
+    head.innerHTML=`<span class="muted">Tap a bar on the ${cpName} staff to place a note. The arrows move it by step.</span>`;
+    return;
+  }
+  if(!show){
+    head.innerHTML=`<span class="muted">${empty?`${empty} bar${empty>1?'s':''} still empty. `:''}Flags are hidden until you tap Check.</span>`;
+    return;
+  }
+  const c={rule:0,caution:0,note:0}; flags.forEach(f=>c[f.sev]++);
+  let h='';
+  if(!flags.length) h=empty?`No flags so far. ${empty} bar${empty>1?'s':''} still empty.`:'No flags. Every bar fits the rules.';
+  else h=empty?`${empty} bar${empty>1?'s':''} still empty.`:'Complete.';
+  if(flags.length){
+    h+=`<div class="counts">`+
+      (c.rule?`<span class="count c-rule">${c.rule} rule${c.rule>1?'s':''} broken</span>`:'')+
+      (c.caution?`<span class="count c-caution">${c.caution} stretched</span>`:'')+
+      (c.note?`<span class="count c-note">${c.note} worth a look</span>`:'')+`</div>`;
+  }
+  head.innerHTML=h;
+  flags.forEach(f=>{
+    const li=document.createElement('li');
+    const b=f.bars, where=!b.length?'Whole line':b.length===1?`Bar ${b[0]+1}`:
+      (Math.max(...b)-Math.min(...b)===b.length-1?`Bars ${Math.min(...b)+1} to ${Math.max(...b)+1}`:`Bars ${b.map(x=>x+1).join(', ')}`);
+    li.innerHTML=`<button class="flag ${f.sev}"><span class="meta"><span class="sev">${SEV_LABEL[f.sev]}</span><span>${where}</span></span><span class="msg">${escapeHTML(f.msg)}</span></button>`;
+    li.firstChild.addEventListener('click',()=>{ if(b.length){S.sel=Math.min(...b); render(); scrollToSel(); playBar(S.sel);} });
+    list.appendChild(li);
+  });
+}
+
+function scrollToSel(){
+  const L=S.layout, wrap=document.getElementById('scoreWrap'); if(!L) return;
+  const x=(L.barsX+S.sel*L.BW)*SCALE, w=L.BW*SCALE;
+  if(x<wrap.scrollLeft+20) wrap.scrollLeft=Math.max(0,x-60);
+  else if(x+w>wrap.scrollLeft+wrap.clientWidth-20) wrap.scrollLeft=x+w-wrap.clientWidth+60;
+}
+
+/* ---------- editing ---------- */
+function setNote(i,nt,{advance=false}={}){
+  S.ex.cp[i]=nt;
+  if(nt&&S.settings.sound) playBar(i);
+  if(advance&&S.settings.advance&&i<S.ex.cf.length-1) S.sel=i+1;
+  render(); scrollToSel();
+}
+function defaultNote(){
+  const L=S.layout, b=L.bottoms[L.cpIdx], d=b+4;
+  return {d,a:keyAcc(S.ex.key,mod(d,7))};
+}
+document.getElementById('score').addEventListener('click',e=>{
+  const svg=e.currentTarget.querySelector('svg'), L=S.layout; if(!svg||!L) return;
+  const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+  const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+  const i=Math.floor((p.x-L.barsX)/L.BW); if(i<0||i>=L.n) return;
+  S.sel=i;
+  const top=L.TOPS[L.cpIdx];
+  if(p.y>top-45&&p.y<top+85){
+    const b=L.bottoms[L.cpIdx], d=b+Math.round((top+40-p.y)/5);
+    const cur=S.ex.cp[i];
+    const a=(cur&&cur.d===d)?cur.a:keyAcc(S.ex.key,mod(d,7));
+    setNote(i,{d,a},{advance:true});
+  } else { render(); playBar(i); }
+});
+function act(name){
+  const ex=S.ex, i=S.sel, cur=ex.cp[i];
+  switch(name){
+    case 'prev': if(i>0){S.sel--; render(); scrollToSel();} break;
+    case 'next': if(i<ex.cf.length-1){S.sel++; render(); scrollToSel();} break;
+    case 'up': case 'down': {
+      if(!cur){ setNote(i,defaultNote()); break; }
+      const d=cur.d+(name==='up'?1:-1);
+      setNote(i,{d,a:keyAcc(ex.key,mod(d,7))}); break;
+    }
+    case 'flat': case 'natural': case 'sharp': {
+      const base=cur||defaultNote();
+      setNote(i,{d:base.d,a:{flat:-1,natural:0,sharp:1}[name]}); break;
+    }
+    case 'clear': if(cur) setNote(i,null); break;
+  }
+}
+document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>act(b.dataset.act)));
+document.addEventListener('keydown',e=>{
+  if(document.querySelector('dialog[open]')) return;
+  const map={ArrowLeft:'prev',ArrowRight:'next',ArrowUp:'up',ArrowDown:'down',Backspace:'clear',Delete:'clear'};
+  if(map[e.key]){e.preventDefault(); act(map[e.key]);}
+});
+
+/* ---------- sound ---------- */
+let actx=null, voicesOn=[], timers=[];
+function audio(){
+  if(!actx){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; actx=new C(); }
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+function tone(m,t0,dur,vol){
+  const c=audio(); if(!c) return;
+  const o=c.createOscillator(), f=c.createBiquadFilter(), g=c.createGain();
+  o.type='triangle'; o.frequency.value=440*Math.pow(2,(m-69)/12);
+  f.type='lowpass'; f.frequency.value=2000;
+  g.gain.setValueAtTime(0,t0);
+  g.gain.linearRampToValueAtTime(vol,t0+0.02);
+  g.gain.setTargetAtTime(vol*0.55,t0+0.04,0.25);
+  g.gain.setTargetAtTime(0,t0+Math.max(0.05,dur-0.06),0.035);
+  o.connect(f); f.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0+dur+0.3);
+  voicesOn.push(o);
+}
+function barPitches(i,which){
+  const ex=S.ex, out=[];
+  if(which!=='cp') out.push(midiOf(ex.cf[i]));
+  if(which!=='cf'&&ex.cp[i]) out.push(midiOf(ex.cp[i]));
+  return out;
+}
+function playBar(i){
+  const c=audio(); if(!c) return;
+  const t=c.currentTime+0.02;
+  barPitches(i,'both').forEach(m=>tone(m,t,0.7,0.15));
+}
+function stopPlayback(){
+  voicesOn.forEach(o=>{try{o.stop();}catch(_){}}); voicesOn=[];
+  timers.forEach(clearTimeout); timers=[];
+  if(S.playIdx!==-1){S.playIdx=-1; render();}
+  setPlayButton(false);
+}
+function setPlayButton(on){
+  document.getElementById('btnPlay').classList.toggle('on',on);
+  document.getElementById('playLabel').textContent=on?'Stop':'Play';
+  document.getElementById('playIcon').innerHTML=on?'<rect x="6" y="6" width="12" height="12"/>':'<path d="M7 4l13 8-13 8z"/>';
+}
+function playAll(){
+  if(timers.length){stopPlayback();return;}
+  const c=audio(); if(!c) return;
+  const ex=S.ex, bar=S.settings.barSec, t0=c.currentTime+0.08, which=S.settings.play;
+  ex.cf.forEach((_,i)=>{
+    barPitches(i,which).forEach(m=>tone(m,t0+i*bar,bar*0.96,0.15));
+    timers.push(setTimeout(()=>{S.playIdx=i; render();},(0.08+i*bar)*1000));
+  });
+  timers.push(setTimeout(()=>{timers=[]; S.playIdx=-1; render(); setPlayButton(false);},(0.08+ex.cf.length*bar+0.1)*1000));
+  setPlayButton(true);
+}
+document.getElementById('btnPlay').addEventListener('click',playAll);
+document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>{
+  S.settings.play=b.dataset.play;
+  document.querySelectorAll('[data-play]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+document.getElementById('btnCheck').addEventListener('click',e=>{
+  S.shown=!S.shown; e.currentTarget.setAttribute('aria-pressed',String(S.shown||S.settings.live)); render();
+});
+
+/* ---------- dialogs ---------- */
+const dlgNew=document.getElementById('dlgNew'), dlgLib=document.getElementById('dlgLib'), dlgSet=document.getElementById('dlgSet');
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d) d.close();}));
+
+const keySel=document.getElementById('newKey');
+keySel.innerHTML='<option value="random">Any key</option>'+KEY_NAMES.map(k=>`<option value="${k}">${makeKey(k).name}</option>`).join('');
+document.getElementById('btnNew').addEventListener('click',()=>dlgNew.showModal());
+document.getElementById('btnCreate').addEventListener('click',()=>{
+  newExercise({key:keySel.value,voice:document.getElementById('newVoice').value,len:document.getElementById('newLen').value});
+  document.getElementById('btnCheck').setAttribute('aria-pressed',String(S.settings.live));
+  dlgNew.close();
+});
+
+function buildLibrary(){
+  const box=document.getElementById('libList'); box.innerHTML='';
+  const groups=[['From the book',LIBRARY.filter(e=>e.source==='book')],['Other',LIBRARY.filter(e=>e.source!=='book')]];
+  for(const [name,items] of groups){
+    const h=document.createElement('h3'); h.textContent=name; box.appendChild(h);
+    if(!items.length){
+      const p=document.createElement('p'); p.className='help';
+      p.textContent=name==='From the book'?'Nothing here yet. Add the book’s cantus firmi to the LIBRARY list at the top of this file.':'Nothing here yet.';
+      box.appendChild(p); continue;
+    }
+    for(const e of items){
+      const b=document.createElement('button'), key=makeKey(e.key), V=VOICES[e.voice];
+      const okNotes=String(e.notes||'').trim().split(/\s+/).every(parseNote);
+      b.innerHTML=`${escapeHTML(e.title||'Untitled')}<small>${key&&V&&okNotes?`${key.name}, ${V.name.toLowerCase()}, ${e.notes.trim().split(/\s+/).length} bars`:'Can’t read this entry. Check its key, voice and notes.'}</small>`;
+      b.addEventListener('click',()=>{ if(loadEntry(e)){ document.getElementById('btnCheck').setAttribute('aria-pressed',String(S.settings.live)); dlgLib.close(); } });
+      box.appendChild(b);
+    }
+  }
+}
+document.getElementById('btnLib').addEventListener('click',()=>{buildLibrary(); dlgLib.showModal();});
+
+const setEls={clefs:'setClefs',live:'setLive',figures:'setFig',advance:'setAdv',sound:'setSound',barSec:'setSpeed'};
+function syncSettings(){
+  for(const [k,id] of Object.entries(setEls)){
+    const el=document.getElementById(id);
+    if(el.type==='checkbox') el.checked=S.settings[k]; else el.value=S.settings[k];
+  }
+}
+for(const [k,id] of Object.entries(setEls)){
+  document.getElementById(id).addEventListener('input',e=>{
+    const el=e.currentTarget;
+    S.settings[k]=el.type==='checkbox'?el.checked:(k==='barSec'?2.4-Number(el.value):el.value);
+    document.getElementById('btnCheck').setAttribute('aria-pressed',String(S.shown||S.settings.live));
+    render();
+  });
+}
+document.getElementById('btnSet').addEventListener('click',()=>{
+  syncSettings();
+  document.getElementById('setSpeed').value=2.4-S.settings.barSec;
+  dlgSet.showModal();
+});
+
+newExercise();
+</script>
+</body>
+</html>
